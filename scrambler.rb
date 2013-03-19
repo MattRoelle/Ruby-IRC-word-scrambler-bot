@@ -3,9 +3,9 @@ require 'socket'
 
 $WORDBANK = []
 
-IO.readlines("/usr/share/dict/words").each do |line|
-  if line.length <= 7
-    $WORDBANK << line
+IO.readlines("words").each do |line|
+  if line.strip.length > 3
+    $WORDBANK << line.strip
   end
 end 
 
@@ -22,6 +22,14 @@ IRC.send "JOIN ##the_basement\r\n", 0
 
 4.times { IRC.gets }
 
+def shuffleWord
+  shuffled = $WORD
+  until $WORD != shuffled
+    shuffled = shuffled.split("").shuffle.join
+  end
+  shuffled
+end
+
 until IRC.eof? do
   
   raw = IRC.gets
@@ -36,15 +44,20 @@ until IRC.eof? do
     if $STATE == :on
 
       if command == $WORD
-        $WORD = $WORDBANK.sample
-        shuffled = $WORD.split("").shuffle.join
-        IRC.send "PRIVMSG ##the_basement :Correct! The new scramble is #{shuffled}\r\n", 0
+        $WORD = $WORDBANK.sample.strip
+        IRC.send "PRIVMSG ##the_basement :Correct! The new scramble is #{shuffleWord}\r\n", 0
       end
       
       if command == "!word"
-        shuffled = $WORD.split("").shuffle.join
-        IRC.send "PRIVMSG ##the_basement :The scramble is #{shuffled}\r\n", 0
+        IRC.send "PRIVMSG ##the_basement :The scramble is #{shuffleWord}\r\n", 0
       end
+      
+      if command == "!skip"
+        oldWord = $WORD
+        $WORD = $WORDBANK.sample.strip
+        IRC.send "PRIVMSG ##the_basement :Loser! The word was #{oldWord}. The new scramble is #{shuffleWord}\r\n", 0
+      end
+
 
 #      if command == "!add"
 #        if not ($WORDBANK.include? message.strip.split(" ")[1])
