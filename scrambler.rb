@@ -49,7 +49,7 @@ def loadPoints
   end
   IO.readlines("points").each do |line|
     player = line.split(" ")[0]
-    points = line.split(" ")[1]
+    points = line.split(" ")[1].to_i
     $POINTBANK[player] = points
   end
 end
@@ -72,10 +72,11 @@ until IRC.eof? do
     if $STATE == :on
 
       if command == $WORD
+        points = ($WORD.length**1.5)
         oldword = $WORD
         $WORD = $WORDBANK.sample.strip
-        $POINTBANK[nick] += oldword.length
-        IRC.send "PRIVMSG ##the_basement :#{nick}, correct! That word was worth #{points} points. You now have #{ $POINTBANK[nick.to_s].to_s } points. The new scramble is #{shuffleWord}\r\n", 0
+        $POINTBANK[nick] += points.floor
+        IRC.send "PRIVMSG ##the_basement :#{nick}, correct! That word was worth #{points.floor} points. You now have #{ $POINTBANK[nick.to_s].to_s } points. The new scramble is #{shuffleWord}\r\n", 0
         savePoints
       end
       
